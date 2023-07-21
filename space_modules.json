@@ -29,6 +29,7 @@
 		"doors": {
 			"north": "comms",
 			"south": "sb_crew",
+			"east": "storage",
 			"west": "p_lobby"
 		}
 	},
@@ -77,7 +78,7 @@
 	},
 	"p_crew": {
 		"title": "Port crew compartment",
-		"description": "A couple of cramped bunks are on either side of the room.",
+		"description": "A pair of bunks are on either side of the room.",
 		"doors": {
 			"north": "p_lobby",
 			"south": "observatory"
@@ -87,7 +88,7 @@
 		"title": "Observatory",
 		"description": "A large mechanised telescope is in the centre of the module.",
 		"doors": {
-			"north": "p_lobby"
+			"north": "p_crew"
 		}
 	},
 	"sb_corridor": {

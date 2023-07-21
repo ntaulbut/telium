@@ -1,8 +1,9 @@
 from typing import Dict, List, Callable
 from random import choice, randint
 import json
+from colorama import Fore, Back, Style
 
-from utils import Dialogue, cprint, Logger, LogLevel, sent_concat, yes_or_no, int_input, disable_text_delay
+from utils import *
 
 # Constants
 MODULES_FILENAME = "space_modules.json"
@@ -160,10 +161,10 @@ class Hurtable:
             self._health -= attack
         else:
             self._health = 0
-        logger.log(f"{self} took {attack} damage, now at {self._health} health.", LogLevel.VERBOSE)
+        logger.log(f"{unique_name(self)} took {attack} damage, now at {self._health} health.", LogLevel.VERBOSE)
         if self._health == 0:
             self.alive = False
-            logger.log(f"{self} died.")
+            logger.log(f"{unique_name(self)} died.")
 
 
 class Player(Entity, Hurtable):
@@ -181,10 +182,10 @@ class Player(Entity, Hurtable):
         if introduce:
             self.module.introduce()
         self.module.visited_by_player = True
-        logger.log(f"Other entities in this module: {list(filter(lambda e: not isinstance(e, Player), self.module.entities))}")
+        logger.log(f"Other entities in this module: {[unique_name(entity) for entity in list(filter(lambda entity: not isinstance(entity, Player), self.module.entities))]}")
         # Execute observers
-        for entity in list(filter(lambda e: not isinstance(e, Player), self.module.entities)):
-            logger.log(f"Calling {entity.on_player_entered_module}", LogLevel.VERBOSE)
+        for entity in list(filter(lambda entity: not isinstance(entity, Player), self.module.entities)):
+            logger.log(f"Calling on_player_entered_module of {unique_name(entity)}", LogLevel.VERBOSE)
             entity.on_player_entered_module()
             # Player could have died in a call to on_player_entered_module so check
             if not self.alive:
@@ -254,7 +255,7 @@ class Telium(Entity):
         escaped = False
         for _ in range(randint(*self.ESCAPE_STEPS_RANGE)):
             available_escapes: List[ModuleInterface] = []
-            for direction, module_id in self.module.doors.items():
+            for module_id in self.module.doors.values():
                 module = ModuleInterface(module_id)
                 if module != player.previous_module and module != player.module and module != player.locked_module:
                     available_escapes.append(module)
@@ -283,14 +284,16 @@ class WorkerAlien(Entity, Hurtable):
 
     def __init__(self, initial_module):
         Entity.__init__(self, initial_module)
-        Hurtable.__init__(self, randint(4, 10))
+        Hurtable.__init__(self, randint(8, 12))
         self.attack = randint(5, 10)
 
     def on_player_entered_module(self):
         if self.alive:
-            cprint(self.d_battle_start.format(determiner="Another" if any(not e.alive for e in filter(lambda e: isinstance(e, WorkerAlien), self.module.entities)) else "A"))
+            cprint(self.d_battle_start.format(
+                determiner="Another" if any(not e.alive for e in filter(lambda e: isinstance(e, WorkerAlien), self.module.entities)) else "A"),
+                colour=Fore.YELLOW, character_delay=.02)
             while self.alive and player.alive:
-                cprint("How much flamethrower fuel will you use against it?")
+                cprint("How much flamethrower fuel do you use against it?")
                 use_fuel = int_input(">")
                 if use_fuel <= player.flamethrower_fuel:
                     player.flamethrower_fuel -= use_fuel
@@ -299,7 +302,7 @@ class WorkerAlien(Entity, Hurtable):
                         # If the player kills the alien
                         cprint(self.d_die)
                         player.print_stats()
-                    elif self._health <= 2:
+                    elif self._health <= 4:
                         # If the player wounds the alien
                         cprint(self.d_escape)
                         self._set_module(Module.random([self.module]))
@@ -326,6 +329,13 @@ class SpaceStation:
                     info["description"],
                     info["doors"]
                 )
+    
+    def verify_modules_map(self):
+        for module_id in self.modules:
+                module = ModuleInterface(module_id)
+                for connected_module_id in list(module.doors.values()):
+                    if not module_id in list(ModuleInterface(connected_module_id).doors.values()):
+                        logger.log(f"'{module_id}' is connected to '{connected_module_id}' but not vice versa", LogLevel.ERROR)
 
     def deplete_energy(self, amount: int):
         """Deplete energy and check if this results in the station running out of energy."""
@@ -337,17 +347,18 @@ class SpaceStation:
         logger.log(f"{self} energy depleted by {amount}, now at {self._energy}.", LogLevel.VERBOSE)
         if self._energy == 0:
             cprint("The lights flicker and turn off. In their place, red emergency lights colours the station.")
-        
+
 
 # Globals
 entities: List[Entity] = []
 
 # Configure
 # disable_text_delay()
-logger = Logger(LogLevel.NONE)
+logger = Logger(LogLevel.VERBOSE)
 
 # Station
 station = SpaceStation(MODULES_FILENAME)
+station.verify_modules_map()
 # Entities
 player = Player(Module.random())
 telium = Telium(Module.random([player.module]))
