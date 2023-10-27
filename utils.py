@@ -8,6 +8,7 @@ from pathlib import Path
 
 enable_text_delay = True
 
+
 def disable_text_delay():
     global enable_text_delay
     enable_text_delay = False
@@ -39,12 +40,20 @@ log_colours = {
 
 
 class Logger:
-    def __init__(self, level = LogLevel.NONE, save_path = None):
+    def __init__(self, level=LogLevel.NONE, save_path=None):
         self.level: LogLevel = level
         self.save_path: str = save_path
         if save_path is not None:
             Path(save_path).mkdir(exist_ok=True)
-        self.run_index: int = sorted([int(Path(path).stem) for path in glob(f"./{save_path}/*.txt")], reverse=True)[0] + 1 if len(glob(f"./{save_path}/*.txt")) > 0 else 0
+        self.run_index: int = (
+            sorted(
+                [int(Path(path).stem) for path in glob(f"./{save_path}/*.txt")],
+                reverse=True,
+            )[0]
+            + 1
+            if len(glob(f"./{save_path}/*.txt")) > 0
+            else 0
+        )
 
     def log(self, text: str, level: LogLevel = LogLevel.INFO):
         if level.value >= self.level.value:
@@ -54,8 +63,14 @@ class Logger:
                 log_file.write(f"<{level.name}> {text}\n")
 
 
-def cprint(text: str, character_delay: float = .04, short_delay: float = .2,
-           long_delay: float = .4, colour: chr = '', end: str = f"\n"):
+def cprint(
+    text: str,
+    character_delay: float = 0.04,
+    short_delay: float = 0.2,
+    long_delay: float = 0.4,
+    colour: chr = "",
+    end: str = f"\n",
+):
     """Prints text one character at a time.
 
     Args:
@@ -91,7 +106,7 @@ def sent_concat(words: List[str]) -> str:
     """
     length: int = len(words)
     if length > 1:
-        words[length-1] = "and " + words[length-1]
+        words[length - 1] = "and " + words[length - 1]
     return ", ".join(words) if length > 2 else " ".join(words)
 
 
