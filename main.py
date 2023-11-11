@@ -1,5 +1,5 @@
-from typing import Dict, List, Callable
-from random import choice, randint
+from typing import Dict, Callable
+from random import randint, choice
 import json
 from colorama import Fore, Back, Style
 
@@ -7,7 +7,7 @@ from utils import *
 from definitions import *
 
 # Constants
-MODULES_FILENAME = "data/space_modules.json"
+MODULES_FILE = "data/space_modules.json"
 # Gameplay constants
 NUM_WORKER_ALIENS = 4
 LOCK_MODULE_ENERGY = 20
@@ -15,6 +15,10 @@ LOCK_MODULE_ENERGY = 20
 # Available commands handling
 available_commands: Dict[str, Callable] = {}
 command_helps: List[str] = []
+
+
+def get_dialogue(key: str) -> str:
+    return choice(dialogue[key])
 
 
 def command(word: str):
@@ -164,12 +168,6 @@ def random_module(exclude=None) -> ModuleInterface:
 class Module:
     """Space station module."""
 
-    d_enter = Dialogue(
-        "You find yourself in the {title}.",
-        "You step into the {title}.",
-        "You cautiously enter the {title}.",
-    )
-
     def __init__(self, title, description, doors):
         self.title: str = title
         self.description: str = description
@@ -182,7 +180,7 @@ class Module:
         """Introduce the module. Print the title, the description
         (if not already visited) and the doors."""
         # Title
-        cprint(self.d_enter.format(title=self.title))
+        cprint(get_dialogue("enter_module").format(title=self.title))
         # Module description if not already seen
         if not self.visited_by_player:
             cprint(self.description)
@@ -278,12 +276,6 @@ class Player(Entity, Hurtable):
 
 
 class Telium(Entity):
-    d_escape = Dialogue(
-        "In the corner of your eye you see an orange blob disappear through a door.",
-        "As you enter, another door is just closing.",
-        "You spot a flash of orange in your peripheral vision.",
-    )
-
     ESCAPE_STEPS_RANGE = (1, 3)
 
     def move_to(self, module: ModuleInterface):
@@ -309,29 +301,12 @@ class Telium(Entity):
                 escaped = True
         # Describe
         if escaped:
-            cprint(self.d_escape)
+            cprint(get_dialogue("telium_escape"))
         else:
             cprint("You are confronted by a starfish-like orange mass. It's trapped!")
 
 
 class WorkerAlien(Entity, Hurtable):
-    d_battle_start = Dialogue(
-        "{determiner} small orange alien scuttles across the floor and leaps towards you!",
-        "{determiner} small orange alien jumps out from behind a crate!",
-        "{determiner} small orange alien falls from the ceiling towards you!",
-    )
-    d_die = Dialogue(
-        "The alien falls lifeless to the floor, smouldering.",
-        "The alien lies charred on the floor.",
-        "The alien is blasted into a corner and stops moving.",
-    )
-    d_player_kill = Dialogue(
-        "The alien chews off your leg and you die.", "The alien kills you to death."
-    )
-    d_escape = Dialogue(
-        "Wounded, the alien disappears into a vent, escaping to another module."
-    )
-
     def __init__(self, initial_module):
         Entity.__init__(self, initial_module)
         Hurtable.__init__(self, randint(8, 12))
@@ -340,7 +315,7 @@ class WorkerAlien(Entity, Hurtable):
     def on_player_entered_module(self):
         if self.alive:
             cprint(
-                self.d_battle_start.format(
+                get_dialogue("worker_battle_start").format(
                     determiner="Another"
                     if any(
                         not entity.alive
@@ -360,11 +335,11 @@ class WorkerAlien(Entity, Hurtable):
                     self.hurt(use_fuel)
                     if not self.alive:
                         # If the player kills the alien
-                        cprint(self.d_die)
+                        cprint(get_dialogue("worker_die"))
                         player.print_stats()
                     elif self._health <= 4:
                         # If the player wounds the alien
-                        cprint(self.d_escape)
+                        cprint(get_dialogue("worker_escape"))
                         self._set_module(random_module())
                         logger.log(f"Worker alien escaped to {self.module.title}.")
                         break
@@ -375,7 +350,7 @@ class WorkerAlien(Entity, Hurtable):
                         )
                         player.hurt(self.attack)
                         if not player.alive:
-                            cprint(self.d_player_kill)
+                            cprint(get_dialogue("worker_kill_player"))
                 else:
                     cprint(f"You only have {player.flamethrower_fuel} fuel.")
 
@@ -422,12 +397,15 @@ class SpaceStation:
 # Globals
 entities: List[Entity] = []
 
+# Dialogue
+dialogue: Dict[str, str] = load_dialogue(Language.ENGLISH)
+
 # Configure
 # disable_text_delay()
 logger = Logger(LogLevel.VERBOSE)
 
 # Station
-station = SpaceStation(MODULES_FILENAME)
+station = SpaceStation(MODULES_FILE)
 station.verify_modules_map()
 # Entities
 player = Player(random_module())

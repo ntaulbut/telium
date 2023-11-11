@@ -1,28 +1,18 @@
+import json
 from time import sleep
-from typing import List
-from random import choice
+from typing import List, Dict
 from enum import Enum
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 from glob import glob
 from pathlib import Path
+
+DIALOGUE_FILE = "data/dialogue.json"
 
 enable_text_delay = True
 
 
-def disable_text_delay():
-    global enable_text_delay
-    enable_text_delay = False
-
-
-class Dialogue:
-    def __init__(self, *variations):
-        self.variations = variations
-
-    def __str__(self):
-        return choice(self.variations)
-
-    def format(self, *args, **kwargs):
-        return self.__str__().format(*args, **kwargs)
+class Language(Enum):
+    ENGLISH = "en"
 
 
 class LogLevel(Enum):
@@ -37,6 +27,16 @@ log_colours = {
     LogLevel.INFO: Fore.BLUE,
     LogLevel.ERROR: Fore.RED,
 }
+
+
+def load_dialogue(language: Language) -> Dict[str, str]:
+    with open(DIALOGUE_FILE, "r") as file:
+        return json.loads(file.read())[language.value]
+
+
+def disable_text_delay():
+    global enable_text_delay
+    enable_text_delay = False
 
 
 class Logger:

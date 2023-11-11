@@ -1,0 +1,31 @@
+{
+  "en": {
+    "enter_module": [
+      "You find yourself in the {title}.",
+      "You step into the {title}.",
+      "You cautiously enter the {title}."
+    ],
+    "telium_escape": [
+      "In the corner of your eye you see an orange blob disappear through a door.",
+      "As you enter, another door is just closing.",
+      "You spot a flash of orange in your peripheral vision."
+    ],
+    "worker_battle_start": [
+      "{determiner} small orange alien scuttles across the floor and leaps towards you!",
+      "{determiner} small orange alien jumps out from behind a crate!",
+      "{determiner} small orange alien falls from the ceiling towards you!"
+    ],
+    "worker_die": [
+      "The alien falls lifeless to the floor, smouldering.",
+      "The alien lies charred on the floor.",
+      "The alien is blasted into a corner and stops moving."
+    ],
+    "worker_kill_player": [
+      "The alien chews off your leg and you die.",
+      "The alien kills you to death."
+    ],
+    "worker_escape": [
+      "Wounded, the alien disappears into a vent, escaping to another module."
+    ]
+  }
+}

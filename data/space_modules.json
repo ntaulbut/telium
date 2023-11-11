@@ -1,110 +1,110 @@
 {
-	"bridge": {
-		"title": "Bridge",
-		"description": "Panels of lights and buttons blink.",
-		"doors": {
-			"southeast": "comms",
-			"southwest": "crew"
-		}
-	},
-	"crew": {
-		"title": "Crew compartment",
-		"description": "A couple of cramped bunks are on either side of the room.",
-		"doors": {
-			"northeast": "bridge",
-			"south": "p_lobby"
-		}
-	},
-	"comms": {
-		"title": "Communications module",
-		"description": "Static noise emanates from analogue equipment.",
-		"doors": {
-			"northwest": "bridge",
-			"south": "sb_lobby"
-		}
-	},
-	"sb_lobby": {
-		"title": "Starboard lobby",
-		"description": "Lunar light streams in through a large skylight.",
-		"doors": {
-			"north": "comms",
-			"south": "sb_crew",
-			"east": "storage",
-			"west": "p_lobby"
-		}
-	},
-	"storage": {
-		"title": "Storage module",
-		"description": "It smells dusty.",
-		"doors": {
-			"west": "sb_lobby",
-			"south": "cryo",
-			"southeast": "sb_corridor"
-		}
-	},
-	"sb_crew": {
-		"title": "Starboard crew compartment",
-		"description": "A couple of cramped bunks are on either side of the room.",
-		"doors": {
-			"north": "sb_lobby",
-			"south": "docking"
-		}
-	},
-	"docking": {
-		"title": "Docking module",
-		"description": "A glimpse of Earth is visible through the hatch.",
-		"doors": {
-			"north": "sb_crew",
-			"northeast": "cryo"
-		}
-	},
-	"cryo": {
-		"title": "Cryostasis module",
-		"description": "Cold air seeps from the pods on each side of the room.",
-		"doors": {
-			"southwest": "docking",
-			"southeast": "sb_engine",
-			"north": "storage"
-		}
-	},
-	"p_lobby": {
-		"title": "Port lobby",
-		"description": "Curvy red chairs dot the room.",
-		"doors": {
-			"north": "crew",
-			"east": "sb_lobby",
-			"south": "p_crew"
-		}
-	},
-	"p_crew": {
-		"title": "Port crew compartment",
-		"description": "A pair of bunks are on either side of the room.",
-		"doors": {
-			"north": "p_lobby",
-			"south": "observatory"
-		}
-	},
-	"observatory": {
-		"title": "Observatory",
-		"description": "A large mechanised telescope is in the centre of the module.",
-		"doors": {
-			"north": "p_crew"
-		}
-	},
-	"sb_corridor": {
-		"title": "Starboard corridor",
-		"description": "There isn't much to see.",
-		"doors": {
-			"northwest": "storage",
-			"south": "sb_engine"
-		}
-	},
-	"sb_engine": {
-		"title": "Starboard engine room",
-		"description": "It's deafeningly loud.",
-		"doors": {
-			"north": "sb_corridor",
-			"northwest": "cryo"
-		}
-	}
+  "bridge": {
+    "title": "Bridge",
+    "description": "Panels of lights and buttons blink.",
+    "doors": {
+      "southeast": "comms",
+      "southwest": "crew"
+    }
+  },
+  "crew": {
+    "title": "Crew compartment",
+    "description": "A couple of cramped bunks are on either side of the room.",
+    "doors": {
+      "northeast": "bridge",
+      "south": "p_lobby"
+    }
+  },
+  "communications": {
+    "title": "Communications module",
+    "description": "Static noise emanates from analogue equipment.",
+    "doors": {
+      "northwest": "bridge",
+      "south": "sb_lobby"
+    }
+  },
+  "sb_lobby": {
+    "title": "Starboard lobby",
+    "description": "Lunar light streams in through a large skylight.",
+    "doors": {
+      "north": "communications",
+      "south": "sb_crew",
+      "east": "storage",
+      "west": "p_lobby"
+    }
+  },
+  "storage": {
+    "title": "Storage module",
+    "description": "It smells dusty.",
+    "doors": {
+      "west": "sb_lobby",
+      "south": "cryo",
+      "southeast": "sb_corridor"
+    }
+  },
+  "sb_crew": {
+    "title": "Starboard crew compartment",
+    "description": "A couple of cramped bunks are on either side of the room.",
+    "doors": {
+      "north": "sb_lobby",
+      "south": "docking"
+    }
+  },
+  "docking": {
+    "title": "Docking module",
+    "description": "A glimpse of Earth is visible through the hatch.",
+    "doors": {
+      "north": "sb_crew",
+      "northeast": "cryo"
+    }
+  },
+  "cryo": {
+    "title": "Cryostasis module",
+    "description": "Cold air seeps from the pods on each side of the room.",
+    "doors": {
+      "southwest": "docking",
+      "southeast": "sb_engine",
+      "north": "storage"
+    }
+  },
+  "p_lobby": {
+    "title": "Port lobby",
+    "description": "Curvy red chairs dot the room.",
+    "doors": {
+      "north": "crew",
+      "east": "sb_lobby",
+      "south": "p_crew"
+    }
+  },
+  "p_crew": {
+    "title": "Port crew compartment",
+    "description": "A pair of bunks are on either side of the room.",
+    "doors": {
+      "north": "p_lobby",
+      "south": "observatory"
+    }
+  },
+  "observatory": {
+    "title": "Observatory",
+    "description": "A large mechanised telescope is in the centre of the module.",
+    "doors": {
+      "north": "p_crew"
+    }
+  },
+  "sb_corridor": {
+    "title": "Starboard corridor",
+    "description": "There isn't much to see.",
+    "doors": {
+      "northwest": "storage",
+      "south": "sb_engine"
+    }
+  },
+  "sb_engine": {
+    "title": "Starboard engine room",
+    "description": "It's deafeningly loud.",
+    "doors": {
+      "north": "sb_corridor",
+      "northwest": "cryo"
+    }
+  }
 }
