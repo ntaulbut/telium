@@ -57,6 +57,60 @@ def debug(_):
     breakpoint()
 
 
+@command("modules")
+def list_modules():
+    """modules: List the modules in the station."""
+    cprint("These modules are in the station:")
+    for module_id in station.modules:
+        module = ModuleInterface(module_id)
+        cprint(f" - {module.title} ({module_id})")
+
+
+@command("go")
+def go_in_direction(self, args: List[str]) -> bool:
+    """go [direction] e.g. northeast/ne: Go through a door."""
+    direction: str = args[0]
+    if direction in DIRECTION_ALIASES:
+        direction = DIRECTION_ALIASES[direction]
+    if direction not in DIRECTIONS:
+        cprint(f"You remember that '{direction}' is not a compass direction.")
+        return False
+    try:
+        player.move_to(ModuleInterface(player.module.doors[direction]), introduce=True)
+        return True
+    except KeyError:
+        cprint("You bump into the wall.")
+        player.module.print_doors()
+        return False
+
+
+@command("lock")
+def lock_module(self, args: List[str]) -> bool:
+    """lock [module id] e.g. bridge: Lock a module."""
+    try:
+        module = ModuleInterface(args[0])
+    except AssertionError:
+        cprint(f"No such module '{args[0]}', enter `modules` to list them.")
+        return False
+    if module == player.locked_module:
+        cprint("Module is already locked.")
+        return False
+    if station._energy >= LOCK_MODULE_ENERGY:
+        player.locked_module = module
+        station.deplete_energy(LOCK_MODULE_ENERGY)
+        cprint(f"Successfully locked the {module.title}.")
+        return True
+    else:
+        cprint(f"Insufficient energy to lock the module.")
+        return False
+
+
+@command("stats")
+def stats(self):
+    """stats: Show your current stats."""
+    player.print_stats()
+
+
 class ModuleInterface(object):
     """Allows referencing a module directly instead of by indexing the global
     list of modules. Raises an assertion error if it is attempted to be created
@@ -92,6 +146,20 @@ class ModuleInterface(object):
         return not self == other
 
 
+def random_module(exclude: List[ModuleInterface] = []) -> ModuleInterface:
+    """Return a random module, optionally excluding some of them."""
+    return ModuleInterface(
+        choice(
+            list(
+                filter(
+                    lambda mid: not ModuleInterface(mid) in exclude,
+                    station.modules.keys(),
+                )
+            )
+        )
+    )
+
+
 class Module:
     """Space station module."""
 
@@ -125,27 +193,6 @@ class Module:
         cprint("There is a door on the", end=" ")
         cprint(sent_concat(list(self.doors)), end=" ")
         cprint(f"side{'s'[:len(self.doors)^1]}.")
-
-    def random(exclude: List[ModuleInterface] = []) -> ModuleInterface:
-        """Return a random module, optionally excluding some of them."""
-        return ModuleInterface(
-            choice(
-                list(
-                    filter(
-                        lambda mid: not ModuleInterface(mid) in exclude,
-                        station.modules.keys(),
-                    )
-                )
-            )
-        )
-
-    @command("modules")
-    def list_modules(_):
-        """modules: List the modules in the station."""
-        cprint("These modules are in the station:")
-        for module_id in station.modules:
-            module = ModuleInterface(module_id)
-            cprint(f" - {module.title} ({module_id})")
 
 
 class Entity:
@@ -225,52 +272,9 @@ class Player(Entity, Hurtable):
             f"You have {self.flamethrower_fuel} flamethrower fuel and {self._health} health."
         )
 
-    @command("go")
-    def go_in_direction(args: List[str]) -> bool:
-        """go [direction] e.g. northeast/ne: Go through a door."""
-        direction: str = args[0]
-        if direction in DIRECTION_ALIASES:
-            direction = DIRECTION_ALIASES[direction]
-        if direction not in DIRECTIONS:
-            cprint(f"You remember that '{direction}' is not a compass direction.")
-            return False
-        try:
-            player.move_to(
-                ModuleInterface(player.module.doors[direction]), introduce=True
-            )
-            return True
-        except KeyError:
-            cprint("You bump into the wall.")
-            player.module.print_doors()
-            return False
 
-    # TODO: don't lock already locked
-    # TODO: energy stuff
-
-    @command("lock")
-    def lock_module(args: List[str]) -> bool:
-        """lock [module id] e.g. bridge: Lock a module."""
-        try:
-            module = ModuleInterface(args[0])
-        except AssertionError:
-            cprint(f"No such module '{args[0]}', enter `modules` to list them.")
-            return False
-        if module == player.locked_module:
-            cprint("Module is already locked.")
-            return False
-        if station._energy >= LOCK_MODULE_ENERGY:
-            player.locked_module = module
-            station.deplete_energy(LOCK_MODULE_ENERGY)
-            cprint(f"Successfully locked the {module.title}.")
-            return True
-        else:
-            cprint(f"Insufficient energy to lock the module.")
-            return False
-
-    @command("stats")
-    def stats(_):
-        """stats: Show your current stats."""
-        player.print_stats()
+# TODO: don't lock already locked
+# TODO: energy stuff
 
 
 class Telium(Entity):
@@ -362,7 +366,7 @@ class WorkerAlien(Entity, Hurtable):
                     elif self._health <= 4:
                         # If the player wounds the alien
                         cprint(self.d_escape)
-                        self._set_module(Module.random([self.module]))
+                        self._set_module(random_module())
                         logger.log(f"Worker alien escaped to {self.module.title}.")
                         break
                     else:
@@ -391,7 +395,7 @@ class SpaceStation:
         for module_id in self.modules:
             module = ModuleInterface(module_id)
             for connected_module_id in list(module.doors.values()):
-                if not module_id in list(
+                if module_id not in list(
                     ModuleInterface(connected_module_id).doors.values()
                 ):
                     logger.log(
@@ -427,11 +431,9 @@ logger = Logger(LogLevel.VERBOSE)
 station = SpaceStation(MODULES_FILENAME)
 station.verify_modules_map()
 # Entities
-player = Player(Module.random())
-telium = Telium(Module.random([player.module]))
-worker_aliens = [
-    WorkerAlien(Module.random([player.module])) for _ in range(NUM_WORKER_ALIENS)
-]
+player = Player(random_module())
+telium = Telium(random_module())
+worker_aliens = [WorkerAlien(random_module()) for _ in range(NUM_WORKER_ALIENS)]
 
 # list_available_commands([])
 # Module.list_modules([])
