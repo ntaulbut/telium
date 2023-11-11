@@ -3,7 +3,7 @@
     "title": "Bridge",
     "description": "Panels of lights and buttons blink.",
     "doors": {
-      "southeast": "comms",
+      "southeast": "communications",
       "southwest": "crew"
     }
   },

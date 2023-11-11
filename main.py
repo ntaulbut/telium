@@ -71,7 +71,7 @@ def list_modules():
 
 
 @command("go")
-def go_in_direction(self, args: List[str]) -> bool:
+def go_in_direction(args: List[str]) -> bool:
     """go [direction] e.g. northeast/ne: Go through a door."""
     direction: str = args[0]
     if direction in DIRECTION_ALIASES:
@@ -89,7 +89,7 @@ def go_in_direction(self, args: List[str]) -> bool:
 
 
 @command("lock")
-def lock_module(self, args: List[str]) -> bool:
+def lock_module(args: List[str]) -> bool:
     """lock [module id] e.g. bridge: Lock a module."""
     try:
         module = ModuleInterface(args[0])
@@ -110,7 +110,7 @@ def lock_module(self, args: List[str]) -> bool:
 
 
 @command("stats")
-def stats(self):
+def stats():
     """stats: Show your current stats."""
     player.print_stats()
 
