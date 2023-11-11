@@ -146,16 +146,17 @@ class ModuleInterface(object):
         return not self == other
 
 
-def random_module(exclude: List[ModuleInterface] = []) -> ModuleInterface:
+def random_module(exclude=None) -> ModuleInterface:
     """Return a random module, optionally excluding some of them."""
+    if exclude is None:
+        exclude = []
     return ModuleInterface(
         choice(
-            list(
-                filter(
-                    lambda mid: not ModuleInterface(mid) in exclude,
-                    station.modules.keys(),
-                )
-            )
+            [
+                module_id
+                for module_id in station.modules.keys()
+                if ModuleInterface(module_id) not in exclude
+            ]
         )
     )
 
@@ -245,19 +246,18 @@ class Player(Entity, Hurtable):
         self.locked_module: ModuleInterface = None
 
     def move_to(self, module: ModuleInterface, introduce=False):
-        """Move the player to a given module and record that they have
-        visited. Optionally also introduce the module moved to."""
+        """Move the player to a given module."""
         self._set_module(module)
         if introduce:
             self.module.introduce()
         self.module.visited_by_player = True
-        logger.log(
-            f"Other entities in this module: {[unique_name(entity) for entity in list(filter(lambda entity: not isinstance(entity, Player), self.module.entities))]}"
-        )
+        non_player_entities = [
+            entity for entity in self.module.entities if not isinstance(entity, Player)
+        ]
+        module_entity_names = [unique_name(entity) for entity in non_player_entities]
+        logger.log(f"Other entities in this module: {module_entity_names}")
         # Execute observers
-        for entity in list(
-            filter(lambda entity: not isinstance(entity, Player), self.module.entities)
-        ):
+        for entity in non_player_entities:
             logger.log(
                 f"Calling on_player_entered_module of {unique_name(entity)}",
                 LogLevel.VERBOSE,
@@ -343,10 +343,9 @@ class WorkerAlien(Entity, Hurtable):
                 self.d_battle_start.format(
                     determiner="Another"
                     if any(
-                        not e.alive
-                        for e in filter(
-                            lambda e: isinstance(e, WorkerAlien), self.module.entities
-                        )
+                        not entity.alive
+                        for entity in self.module.entities
+                        if isinstance(entity, WorkerAlien)
                     )
                     else "A"
                 ),
