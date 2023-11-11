@@ -1,10 +1,8 @@
-from typing import Dict, Callable
 from random import randint, choice
-import json
-from colorama import Fore, Back, Style
+from typing import Callable, Optional, Any
 
-from utils import *
 from definitions import *
+from utils import *
 
 # Constants
 MODULES_FILE = "data/space_modules.json"
@@ -21,10 +19,10 @@ def get_dialogue(key: str) -> str:
     return choice(dialogue[key])
 
 
-def command(word: str):
+def command(word: str) -> Callable:
     """Register a command."""
 
-    def wrap(func: Callable):
+    def wrap(func: Callable) -> Callable:
         available_commands[word] = func
         if func.__doc__ is not None:
             command_helps.append(func.__doc__)
@@ -34,7 +32,7 @@ def command(word: str):
 
 
 @command("quit")
-def quit_game(_):
+def quit_game(_) -> None:
     """quit: Quit the game."""
     if yes_or_no("Are you sure you want to quit? Your progress will be lost."):
         quit()
@@ -43,7 +41,7 @@ def quit_game(_):
 
 
 @command("commands")
-def list_available_commands(_):
+def list_available_commands(_) -> None:
     """commands: List the available commands."""
     cprint("You can use these commands:")
     for command_help in command_helps:
@@ -51,18 +49,18 @@ def list_available_commands(_):
 
 
 @command("doors")
-def print_doors(_):
+def print_doors(_) -> None:
     """doors: List the available doors."""
     player.module.print_doors()
 
 
 @command("debug")
-def debug(_):
+def debug(_) -> None:
     breakpoint()
 
 
 @command("modules")
-def list_modules():
+def list_modules(_) -> None:
     """modules: List the modules in the station."""
     cprint("These modules are in the station:")
     for module_id in station.modules:
@@ -110,7 +108,7 @@ def lock_module(args: List[str]) -> bool:
 
 
 @command("stats")
-def stats():
+def stats(_) -> None:
     """stats: Show your current stats."""
     player.print_stats()
 
@@ -120,21 +118,21 @@ class ModuleInterface(object):
     list of modules. Raises an assertion error if it is attempted to be created
     for a module that does not exist."""
 
-    def __init__(self, module_id):
+    def __init__(self, module_id: str) -> None:
         assert module_id in list(station.modules.keys())
         object.__setattr__(self, "module_id", module_id)
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
         return station.modules[
             object.__getattribute__(self, "module_id")
         ].__getattribute__(name)
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, name: str, value: Any) -> None:
         station.modules[object.__getattribute__(self, "module_id")].__setattr__(
             name, value
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         # Two ModuleInterfaces are equal if they point to the same module
         if isinstance(other, self.__class__):
             return object.__getattribute__(
@@ -146,11 +144,11 @@ class ModuleInterface(object):
         else:
             return False
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
 
-def random_module(exclude=None) -> ModuleInterface:
+def random_module(exclude: Optional[List[ModuleInterface]] = None) -> ModuleInterface:
     """Return a random module, optionally excluding some of them."""
     if exclude is None:
         exclude = []
@@ -168,15 +166,15 @@ def random_module(exclude=None) -> ModuleInterface:
 class Module:
     """Space station module."""
 
-    def __init__(self, title, description, doors):
+    def __init__(self, title: str, description: str, doors: Dict[str, str]) -> None:
         self.title: str = title
         self.description: str = description
         self.doors: Dict[str, str] = doors
-        self.visited_by_player = False
-        self.telium_visited_recently = False
+        self.visited_by_player: bool = False
+        self.telium_visited_recently: bool = False
         self.entities: List[Entity] = []
 
-    def introduce(self):
+    def introduce(self) -> None:
         """Introduce the module. Print the title, the description
         (if not already visited) and the doors."""
         # Title
@@ -187,7 +185,7 @@ class Module:
         # Doors
         self.print_doors()
 
-    def print_doors(self):
+    def print_doors(self) -> None:
         """Print the doors of the module."""
         cprint("There is a door on the", end=" ")
         cprint(sent_concat(list(self.doors)), end=" ")
@@ -197,28 +195,28 @@ class Module:
 class Entity:
     """An entity that has a physical presence in a module."""
 
-    def __init__(self, initial_module):
+    def __init__(self, initial_module: ModuleInterface) -> None:
         entities.append(self)
         self.module: ModuleInterface = initial_module
         self.module.entities.append(self)
-        self.previous_module: ModuleInterface = None
+        self.previous_module: Optional[ModuleInterface] = None
 
-    def _set_module(self, module: ModuleInterface):
+    def _set_module(self, module: ModuleInterface) -> None:
         self.module.entities.remove(self)
         self.previous_module = self.module
         self.module = module
         self.module.entities.append(self)
 
-    def on_player_entered_module(self):
+    def on_player_entered_module(self) -> None:
         pass
 
 
-class Hurtable:
-    def __init__(self, initial_health):
-        self.alive = True
-        self._health = initial_health
+class HasHealth:
+    def __init__(self, initial_health: int):
+        self.alive: bool = True
+        self._health: int = initial_health
 
-    def hurt(self, attack: int):
+    def hurt(self, attack: int) -> None:
         """Decrement health by attack and check if this results in the entity dying."""
         # Prevent negative health.
         if self._health - attack > 0:
@@ -234,17 +232,14 @@ class Hurtable:
             logger.log(f"{unique_name(self)} died.")
 
 
-class Player(Entity, Hurtable):
-    """Player singleton."""
-
-    def __init__(self, initial_module):
+class Player(Entity, HasHealth):
+    def __init__(self, initial_module: ModuleInterface) -> None:
         Entity.__init__(self, initial_module)
-        Hurtable.__init__(self, 100)
-        self.flamethrower_fuel = 100
-        self.locked_module: ModuleInterface = None
+        HasHealth.__init__(self, 100)
+        self.flamethrower_fuel: int = 100
+        self.locked_module: Optional[ModuleInterface] = None
 
-    def move_to(self, module: ModuleInterface, introduce=False):
-        """Move the player to a given module."""
+    def move_to(self, module: ModuleInterface, introduce: bool = False) -> None:
         self._set_module(module)
         if introduce:
             self.module.introduce()
@@ -265,24 +260,20 @@ class Player(Entity, Hurtable):
             if not self.alive:
                 break
 
-    def print_stats(self):
+    def print_stats(self) -> None:
         cprint(
             f"You have {self.flamethrower_fuel} flamethrower fuel and {self._health} health."
         )
 
 
-# TODO: don't lock already locked
-# TODO: energy stuff
-
-
 class Telium(Entity):
     ESCAPE_STEPS_RANGE = (1, 3)
 
-    def move_to(self, module: ModuleInterface):
+    def move_to(self, module: ModuleInterface) -> None:
         self._set_module(module)
         self.module.telium_visited_recently = True
 
-    def on_player_entered_module(self):
+    def on_player_entered_module(self) -> None:
         escaped = False
         for _ in range(randint(*self.ESCAPE_STEPS_RANGE)):
             available_escapes: List[ModuleInterface] = []
@@ -306,13 +297,13 @@ class Telium(Entity):
             cprint("You are confronted by a starfish-like orange mass. It's trapped!")
 
 
-class WorkerAlien(Entity, Hurtable):
-    def __init__(self, initial_module):
+class WorkerAlien(Entity, HasHealth):
+    def __init__(self, initial_module: ModuleInterface) -> None:
         Entity.__init__(self, initial_module)
-        Hurtable.__init__(self, randint(8, 12))
+        HasHealth.__init__(self, randint(8, 12))
         self.attack = randint(5, 10)
 
-    def on_player_entered_module(self):
+    def on_player_entered_module(self) -> None:
         if self.alive:
             cprint(
                 get_dialogue("worker_battle_start").format(
@@ -356,8 +347,8 @@ class WorkerAlien(Entity, Hurtable):
 
 
 class SpaceStation:
-    def __init__(self, modules_filename):
-        self._energy = 100
+    def __init__(self, modules_filename: str) -> None:
+        self._energy: int = 100
         self.modules: Dict[str, Module] = {}
         with open(modules_filename, "r", encoding="utf-8") as file:
             for name, info in json.loads(file.read()).items():
@@ -365,7 +356,7 @@ class SpaceStation:
                     info["title"], info["description"], info["doors"]
                 )
 
-    def verify_modules_map(self):
+    def verify_modules_map(self) -> None:
         for module_id in self.modules:
             module = ModuleInterface(module_id)
             for connected_module_id in list(module.doors.values()):
@@ -377,7 +368,7 @@ class SpaceStation:
                         LogLevel.ERROR,
                     )
 
-    def deplete_energy(self, amount: int):
+    def deplete_energy(self, amount: int) -> None:
         """Deplete energy and check if this results in the station running out of energy."""
         # Prevent negative energy.
         if self._energy - amount > 0:

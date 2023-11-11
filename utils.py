@@ -1,10 +1,11 @@
 import json
-from time import sleep
-from typing import List, Dict
 from enum import Enum
-from colorama import Fore, Style
 from glob import glob
 from pathlib import Path
+from time import sleep
+from typing import List, Dict
+
+from colorama import Fore, Style
 
 DIALOGUE_FILE = "data/dialogue.json"
 
