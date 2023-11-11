@@ -4,29 +4,10 @@ import json
 from colorama import Fore, Back, Style
 
 from utils import *
+from definitions import *
 
 # Constants
-MODULES_FILENAME = "space_modules.json"
-DIRECTIONS = [
-    "north",
-    "northeast",
-    "east",
-    "southeast",
-    "south",
-    "southwest",
-    "west",
-    "northwest",
-]
-DIRECTION_ALIASES = {
-    "n": "north",
-    "ne": "northeast",
-    "e": "east",
-    "se": "southeast",
-    "s": "south",
-    "sw": "southwest",
-    "w": "west",
-    "nw": "northwest",
-}
+MODULES_FILENAME = "data/space_modules.json"
 # Gameplay constants
 NUM_WORKER_ALIENS = 4
 LOCK_MODULE_ENERGY = 20
